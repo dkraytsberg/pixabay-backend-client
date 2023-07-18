@@ -11,12 +11,26 @@ const baseUrl = "https://pixabay.com/api"
 const createSearchUrl = (searchQuery, page = 1, perPage = defaultPageSize) => `${baseUrl}?key=${apiKey}&q=${searchQuery}&page=${page}&per_page=${perPage}${imageConfigUrl}`
 const createSingleImageUrl = (imageId) => `${baseUrl}?key=${apiKey}&id=${imageId}${imageConfigUrl}`
 
-const fetchSearchedImages = () => {
-    // TODO: take search and pagination params
-    return axios(createSearchUrl('yellow+flowers'))
+const fetchSearchedImages = (searchTerm) => {
+    // TODO: take pagination params
+    return axios(createSearchUrl(searchTerm))
         .then(function (response) {
-            // TODO: return trimmed data
-            return response.data
+            data = response.data
+
+            results = data.hits.map(({ id, previewURL}) => ({
+                id,
+                url: previewURL,
+                imageLink: `/image/${id}`
+            }))
+
+            return {
+                searchTerm: searchTerm,
+                totalResults: data.totalHits,
+                page: 1,
+                pageSize: defaultPageSize,
+                resultsCount: results.length,
+                results: results
+            }
         });
 }
 
@@ -30,9 +44,9 @@ const fetchSingleImage = (id) => {
 }
 
 
-app.get('/search', (req, res) => {
-    // TODO: add search term, pagination
-    fetchSearchedImages().then(data => res.json(data))
+app.get('/search/:searchTerm', (req, res) => {
+    // TODO: add pagination
+    fetchSearchedImages(req.params.searchTerm).then(data => res.json(data))
 
 })
 
