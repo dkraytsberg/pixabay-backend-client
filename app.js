@@ -20,13 +20,13 @@ const fetchSearchedImages = () => {
         });
 }
 
-const fetchSingleImage = () => {
-    // TODO: take image id param
-    return axios(createSingleImageUrl(2295434))
+const fetchSingleImage = (id) => {
+    return axios(createSingleImageUrl(id))
         .then(function (response) {
-            // TODO: return trimmed data
-            return response.data
-        });
+            const { id, webformatURL: url, user, tags = "" } = response.data.hits[0]
+
+            return { id, url, user, tags: tags.split(',').map(s => s.trim()) }
+        })
 }
 
 
@@ -36,9 +36,10 @@ app.get('/search', (req, res) => {
 
 })
 
-app.get('/image', (req, res) => {
-    // TODO: image id route
-    fetchSingleImage().then(data => res.json(data))
+app.get('/image/:id', (req, res) => {
+    fetchSingleImage(req.params.id)
+        .then(data => res.json(data))
+        .catch(e => res.status(500).json({"message": `Unable to find image with id "${req.params.id}"`}))
 })
 
 app.listen(port, () => {
