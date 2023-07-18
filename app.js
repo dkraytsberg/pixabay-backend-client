@@ -12,34 +12,36 @@ const createSearchUrl = (searchQuery, page = 1, perPage = defaultPageSize) => `$
 const createSingleImageUrl = (imageId) => `${baseUrl}?key=${apiKey}&id=${imageId}${imageConfigUrl}`
 
 const fetchSearchedImages = () => {
+    // TODO: take search and pagination params
     return axios(createSearchUrl('yellow+flowers'))
         .then(function (response) {
-          return response.data
+            // TODO: return trimmed data
+            return response.data
         });
 }
 
 const fetchSingleImage = () => {
+    // TODO: take image id param
     return axios(createSingleImageUrl(2295434))
-    .then(function (response) {
-      return response.data
-    });
-}   
-
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+        .then(function (response) {
+            // TODO: return trimmed data
+            return response.data
+        });
+}
 
 
 app.get('/search', (req, res) => {
+    // TODO: add search term, pagination
     fetchSearchedImages().then(data => res.json(data))
-    
+
 })
 
 app.get('/image', (req, res) => {
+    // TODO: image id route
     fetchSingleImage().then(data => res.json(data))
 })
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+    console.log(`Pixelbay client running on port ${port}`)
 })
 
