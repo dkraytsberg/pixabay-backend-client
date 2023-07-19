@@ -4,16 +4,15 @@ const app = express()
 const port = 3000
 
 const defaultPageSize = 5
-const imageConfigUrl = "&image_type=photo&pretty=true"
+const imageConfigUrl = "&image_type=photo"
 
 const apiKey = "38336770-addfa6e1da7b4665e57a07057"
 const baseUrl = "https://pixabay.com/api"
-const createSearchUrl = (searchQuery, page = 1, perPage = defaultPageSize) => `${baseUrl}?key=${apiKey}&q=${searchQuery}&page=${page}&per_page=${perPage}${imageConfigUrl}`
+const createSearchUrl = (searchQuery, page = 1, resultsPerPage = defaultPageSize) => `${baseUrl}?key=${apiKey}&q=${searchQuery}&page=${page}&per_page=${resultsPerPage}${imageConfigUrl}`
 const createSingleImageUrl = (imageId) => `${baseUrl}?key=${apiKey}&id=${imageId}${imageConfigUrl}`
 
-const fetchSearchedImages = (searchTerm) => {
-    // TODO: take pagination params
-    return axios(createSearchUrl(searchTerm))
+const fetchSearchedImages = (searchTerm, page, resultsPerPage) => {
+    return axios(createSearchUrl(searchTerm, page, resultsPerPage))
         .then(function (response) {
             data = response.data
 
@@ -26,8 +25,8 @@ const fetchSearchedImages = (searchTerm) => {
             return {
                 searchTerm: searchTerm,
                 totalResults: data.totalHits,
-                page: 1,
-                pageSize: defaultPageSize,
+                page,
+                resultsPerPage,
                 resultsCount: results.length,
                 results: results
             }
@@ -45,15 +44,21 @@ const fetchSingleImage = (id) => {
 
 
 app.get('/search/:searchTerm', (req, res) => {
-    // TODO: add pagination
-    fetchSearchedImages(req.params.searchTerm).then(data => res.json(data))
+    const { page = 1, per_page: resultsPerPage = defaultPageSize } = req.query
+    fetchSearchedImages(req.params.searchTerm, page, resultsPerPage)
+            .then(data => res.json(data))
+            .catch(e => {
+                res.status(e.response.status).json({ message: e.response.data, _args: { searchTerm: req.params.searchTerm, page, per_page: resultsPerPage }})
+            })
 
 })
 
 app.get('/image/:id', (req, res) => {
     fetchSingleImage(req.params.id)
         .then(data => res.json(data))
-        .catch(e => res.status(500).json({"message": `Unable to find image with id "${req.params.id}"`}))
+        .catch(e => {
+            res.status(e.response.status).json({ message: e.response.data, _args: { imageId: req.params.id } })
+        })
 })
 
 app.listen(port, () => {
